@@ -1,0 +1,275 @@
+{
+  "generated_at": "2026-07-24T21:02:15.468821+00:00",
+  "source_row_count": 32,
+  "weekly_summary": [
+    {
+      "week_start": "2026-04-06",
+      "signups": 1080,
+      "activated_users": 661,
+      "activation_rate": 0.612,
+      "paid_conversions": 221,
+      "signup_to_paid_rate": 0.2046,
+      "revenue_usd": 45600.0,
+      "support_tickets": 80,
+      "tickets_per_100_signups": 7.41
+    },
+    {
+      "week_start": "2026-04-13",
+      "signups": 1122,
+      "activated_users": 692,
+      "activation_rate": 0.6168,
+      "paid_conversions": 231,
+      "signup_to_paid_rate": 0.2059,
+      "revenue_usd": 47680.0,
+      "support_tickets": 79,
+      "tickets_per_100_signups": 7.04
+    },
+    {
+      "week_start": "2026-04-20",
+      "signups": 1169,
+      "activated_users": 729,
+      "activation_rate": 0.6236,
+      "paid_conversions": 244,
+      "signup_to_paid_rate": 0.2087,
+      "revenue_usd": 50400.0,
+      "support_tickets": 85,
+      "tickets_per_100_signups": 7.27
+    },
+    {
+      "week_start": "2026-04-27",
+      "signups": 1219,
+      "activated_users": 764,
+      "activation_rate": 0.6267,
+      "paid_conversions": 256,
+      "signup_to_paid_rate": 0.21,
+      "revenue_usd": 52960.0,
+      "support_tickets": 88,
+      "tickets_per_100_signups": 7.22
+    },
+    {
+      "week_start": "2026-05-04",
+      "signups": 1302,
+      "activated_users": 799,
+      "activation_rate": 0.6137,
+      "paid_conversions": 265,
+      "signup_to_paid_rate": 0.2035,
+      "revenue_usd": 54920.0,
+      "support_tickets": 98,
+      "tickets_per_100_signups": 7.53
+    },
+    {
+      "week_start": "2026-05-11",
+      "signups": 1372,
+      "activated_users": 828,
+      "activation_rate": 0.6035,
+      "paid_conversions": 273,
+      "signup_to_paid_rate": 0.199,
+      "revenue_usd": 56720.0,
+      "support_tickets": 110,
+      "tickets_per_100_signups": 8.02
+    },
+    {
+      "week_start": "2026-05-18",
+      "signups": 1435,
+      "activated_users": 846,
+      "activation_rate": 0.5895,
+      "paid_conversions": 281,
+      "signup_to_paid_rate": 0.1958,
+      "revenue_usd": 58520.0,
+      "support_tickets": 123,
+      "tickets_per_100_signups": 8.57
+    },
+    {
+      "week_start": "2026-05-25",
+      "signups": 1490,
+      "activated_users": 857,
+      "activation_rate": 0.5752,
+      "paid_conversions": 288,
+      "signup_to_paid_rate": 0.1933,
+      "revenue_usd": 60080.0,
+      "support_tickets": 137,
+      "tickets_per_100_signups": 9.19
+    }
+  ],
+  "channel_summary": [
+    {
+      "acquisition_channel": "Partners",
+      "first_signups": 120,
+      "last_signups": 205,
+      "signup_growth": 0.7083,
+      "first_activation_rate": 0.6833,
+      "last_activation_rate": 0.7366,
+      "activation_rate_change": 0.0533,
+      "activation_rate_change_pp": 5.33,
+      "first_paid_rate": 0.2917,
+      "last_paid_rate": 0.3024,
+      "paid_rate_change": 0.0108,
+      "paid_rate_change_pp": 1.08,
+      "first_revenue": 8400.0,
+      "last_revenue": 14880.0,
+      "revenue_growth": 0.7714,
+      "first_tickets": 10,
+      "last_tickets": 14,
+      "ticket_growth": 0.4
+    },
+    {
+      "acquisition_channel": "Referral",
+      "first_signups": 180,
+      "last_signups": 245,
+      "signup_growth": 0.3611,
+      "first_activation_rate": 0.7,
+      "last_activation_rate": 0.751,
+      "activation_rate_change": 0.051,
+      "activation_rate_change_pp": 5.1,
+      "first_paid_rate": 0.2667,
+      "last_paid_rate": 0.3061,
+      "paid_rate_change": 0.0395,
+      "paid_rate_change_pp": 3.95,
+      "first_revenue": 9600.0,
+      "last_revenue": 15000.0,
+      "revenue_growth": 0.5625,
+      "first_tickets": 12,
+      "last_tickets": 14,
+      "ticket_growth": 0.1667
+    },
+    {
+      "acquisition_channel": "Organic",
+      "first_signups": 420,
+      "last_signups": 510,
+      "signup_growth": 0.2143,
+      "first_activation_rate": 0.5905,
+      "last_activation_rate": 0.6118,
+      "activation_rate_change": 0.0213,
+      "activation_rate_change_pp": 2.13,
+      "first_paid_rate": 0.1857,
+      "last_paid_rate": 0.2,
+      "paid_rate_change": 0.0143,
+      "paid_rate_change_pp": 1.43,
+      "first_revenue": 15600.0,
+      "last_revenue": 20400.0,
+      "revenue_growth": 0.3077,
+      "first_tickets": 28,
+      "last_tickets": 31,
+      "ticket_growth": 0.1071
+    },
+    {
+      "acquisition_channel": "Paid Search",
+      "first_signups": 360,
+      "last_signups": 530,
+      "signup_growth": 0.4722,
+      "first_activation_rate": 0.5694,
+      "last_activation_rate": 0.3962,
+      "activation_rate_change": -0.1732,
+      "activation_rate_change_pp": -17.32,
+      "first_paid_rate": 0.1667,
+      "last_paid_rate": 0.0925,
+      "paid_rate_change": -0.0742,
+      "paid_rate_change_pp": -7.42,
+      "first_revenue": 12000.0,
+      "last_revenue": 9800.0,
+      "revenue_growth": -0.1833,
+      "first_tickets": 30,
+      "last_tickets": 78,
+      "ticket_growth": 1.6
+    }
+  ],
+  "source_preview": [
+    {
+      "week_start": "2026-04-06",
+      "acquisition_channel": "Organic",
+      "signups": 420,
+      "activated_users": 248,
+      "paid_conversions": 78,
+      "revenue_usd": 15600.0,
+      "support_tickets": 28
+    },
+    {
+      "week_start": "2026-04-06",
+      "acquisition_channel": "Paid Search",
+      "signups": 360,
+      "activated_users": 205,
+      "paid_conversions": 60,
+      "revenue_usd": 12000.0,
+      "support_tickets": 30
+    },
+    {
+      "week_start": "2026-04-06",
+      "acquisition_channel": "Partners",
+      "signups": 120,
+      "activated_users": 82,
+      "paid_conversions": 35,
+      "revenue_usd": 8400.0,
+      "support_tickets": 10
+    },
+    {
+      "week_start": "2026-04-06",
+      "acquisition_channel": "Referral",
+      "signups": 180,
+      "activated_users": 126,
+      "paid_conversions": 48,
+      "revenue_usd": 9600.0,
+      "support_tickets": 12
+    },
+    {
+      "week_start": "2026-04-13",
+      "acquisition_channel": "Organic",
+      "signups": 432,
+      "activated_users": 257,
+      "paid_conversions": 80,
+      "revenue_usd": 16000.0,
+      "support_tickets": 27
+    },
+    {
+      "week_start": "2026-04-13",
+      "acquisition_channel": "Paid Search",
+      "signups": 375,
+      "activated_users": 214,
+      "paid_conversions": 63,
+      "revenue_usd": 12600.0,
+      "support_tickets": 31
+    },
+    {
+      "week_start": "2026-04-13",
+      "acquisition_channel": "Partners",
+      "signups": 128,
+      "activated_users": 89,
+      "paid_conversions": 37,
+      "revenue_usd": 8880.0,
+      "support_tickets": 10
+    },
+    {
+      "week_start": "2026-04-13",
+      "acquisition_channel": "Referral",
+      "signups": 187,
+      "activated_users": 132,
+      "paid_conversions": 51,
+      "revenue_usd": 10200.0,
+      "support_tickets": 11
+    },
+    {
+      "week_start": "2026-04-20",
+      "acquisition_channel": "Organic",
+      "signups": 445,
+      "activated_users": 269,
+      "paid_conversions": 84,
+      "revenue_usd": 16800.0,
+      "support_tickets": 29
+    },
+    {
+      "week_start": "2026-04-20",
+      "acquisition_channel": "Paid Search",
+      "signups": 392,
+      "activated_users": 225,
+      "paid_conversions": 66,
+      "revenue_usd": 13200.0,
+      "support_tickets": 33
+    }
+  ],
+  "validation": {
+    "row_count": "passed",
+    "week_count": "passed",
+    "channel_count": "passed",
+    "weekly_signup_reconciliation": "passed",
+    "headline_spot_checks": "passed"
+  }
+}

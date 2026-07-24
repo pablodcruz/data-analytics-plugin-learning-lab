@@ -1,0 +1,878 @@
+{
+  "surface": "report",
+  "manifest": {
+    "version": 1,
+    "surface": "report",
+    "title": "Synthetic Product Growth: Scale the winners, fix Paid Search",
+    "description": "A hands-on Data Analytics learning lab built from synthetic product-growth data.",
+    "generatedAt": "2026-07-24T21:02:15.468821+00:00",
+    "sources": [
+      {
+        "id": "weekly-growth-query",
+        "label": "Synthetic product-growth demo \u2014 weekly summary",
+        "path": "data-analytics-lab/sample-product-growth.csv",
+        "query": {
+          "engine": "SQLite",
+          "language": "SQL",
+          "description": "Aggregate the synthetic channel rows into weekly funnel, revenue, and support metrics.",
+          "sql": "SELECT\n  week_start,\n  SUM(signups) AS signups,\n  SUM(activated_users) AS activated_users,\n  ROUND(1.0 * SUM(activated_users) / SUM(signups), 4) AS activation_rate,\n  SUM(paid_conversions) AS paid_conversions,\n  ROUND(1.0 * SUM(paid_conversions) / SUM(signups), 4) AS signup_to_paid_rate,\n  SUM(revenue_usd) AS revenue_usd,\n  SUM(support_tickets) AS support_tickets,\n  ROUND(100.0 * SUM(support_tickets) / SUM(signups), 2) AS tickets_per_100_signups\nFROM product_growth\nGROUP BY week_start\nORDER BY week_start",
+          "tables_used": [
+            "product_growth"
+          ],
+          "filters": [
+            "Complete weeks from 2026-04-06 through 2026-05-25",
+            "All four acquisition channels",
+            "Synthetic fixture data"
+          ],
+          "metric_definitions": [
+            "Activation rate = activated users / signups for each week.",
+            "Signup-to-paid rate = paid conversions / signups for each week.",
+            "Tickets per 100 signups = 100 \u00d7 support tickets / signups for each week.",
+            "Revenue is the sum of revenue_usd in USD for each complete week."
+          ],
+          "executed_at": "2026-07-24T21:02:15.468821+00:00"
+        }
+      },
+      {
+        "id": "channel-growth-query",
+        "label": "Synthetic product-growth demo \u2014 channel comparison",
+        "path": "data-analytics-lab/sample-product-growth.csv",
+        "query": {
+          "engine": "SQLite",
+          "language": "SQL",
+          "description": "Compare first and last complete weeks for each acquisition channel.",
+          "sql": "WITH channel_baselines AS (\n  SELECT\n    acquisition_channel,\n    MAX(CASE WHEN week_start = (SELECT MIN(week_start) FROM product_growth)\n      THEN signups END) AS first_signups,\n    MAX(CASE WHEN week_start = (SELECT MAX(week_start) FROM product_growth)\n      THEN signups END) AS last_signups,\n    1.0 * MAX(CASE WHEN week_start = (SELECT MIN(week_start) FROM product_growth)\n      THEN activated_users END)\n      / MAX(CASE WHEN week_start = (SELECT MIN(week_start) FROM product_growth)\n      THEN signups END) AS first_activation_rate,\n    1.0 * MAX(CASE WHEN week_start = (SELECT MAX(week_start) FROM product_growth)\n      THEN activated_users END)\n      / MAX(CASE WHEN week_start = (SELECT MAX(week_start) FROM product_growth)\n      THEN signups END) AS last_activation_rate,\n    1.0 * MAX(CASE WHEN week_start = (SELECT MIN(week_start) FROM product_growth)\n      THEN paid_conversions END)\n      / MAX(CASE WHEN week_start = (SELECT MIN(week_start) FROM product_growth)\n      THEN signups END) AS first_paid_rate,\n    1.0 * MAX(CASE WHEN week_start = (SELECT MAX(week_start) FROM product_growth)\n      THEN paid_conversions END)\n      / MAX(CASE WHEN week_start = (SELECT MAX(week_start) FROM product_growth)\n      THEN signups END) AS last_paid_rate,\n    MAX(CASE WHEN week_start = (SELECT MIN(week_start) FROM product_growth)\n      THEN revenue_usd END) AS first_revenue,\n    MAX(CASE WHEN week_start = (SELECT MAX(week_start) FROM product_growth)\n      THEN revenue_usd END) AS last_revenue,\n    MAX(CASE WHEN week_start = (SELECT MIN(week_start) FROM product_growth)\n      THEN support_tickets END) AS first_tickets,\n    MAX(CASE WHEN week_start = (SELECT MAX(week_start) FROM product_growth)\n      THEN support_tickets END) AS last_tickets\n  FROM product_growth\n  GROUP BY acquisition_channel\n)\nSELECT\n  acquisition_channel,\n  first_signups,\n  last_signups,\n  ROUND(1.0 * last_signups / first_signups - 1, 4) AS signup_growth,\n  ROUND(first_activation_rate, 4) AS first_activation_rate,\n  ROUND(last_activation_rate, 4) AS last_activation_rate,\n  ROUND(last_activation_rate - first_activation_rate, 4) AS activation_rate_change,\n  ROUND(100.0 * (last_activation_rate - first_activation_rate), 2) AS activation_rate_change_pp,\n  ROUND(first_paid_rate, 4) AS first_paid_rate,\n  ROUND(last_paid_rate, 4) AS last_paid_rate,\n  ROUND(last_paid_rate - first_paid_rate, 4) AS paid_rate_change,\n  ROUND(100.0 * (last_paid_rate - first_paid_rate), 2) AS paid_rate_change_pp,\n  first_revenue,\n  last_revenue,\n  ROUND(1.0 * last_revenue / first_revenue - 1, 4) AS revenue_growth,\n  first_tickets,\n  last_tickets,\n  ROUND(1.0 * last_tickets / first_tickets - 1, 4) AS ticket_growth\nFROM channel_baselines\nORDER BY revenue_growth DESC",
+          "tables_used": [
+            "product_growth"
+          ],
+          "filters": [
+            "First week: 2026-04-06",
+            "Last week: 2026-05-25",
+            "Synthetic fixture data"
+          ],
+          "metric_definitions": [
+            "Revenue growth = last-week revenue / first-week revenue \u2212 1.",
+            "Activation-rate change = last-week activation rate \u2212 first-week activation rate.",
+            "Paid-rate change = last-week paid conversions/signups \u2212 first-week paid conversions/signups.",
+            "Ticket growth = last-week support tickets / first-week support tickets \u2212 1."
+          ],
+          "executed_at": "2026-07-24T21:02:15.468821+00:00"
+        }
+      },
+      {
+        "id": "raw-growth-preview",
+        "label": "Synthetic product-growth demo \u2014 source preview",
+        "path": "data-analytics-lab/sample-product-growth.csv",
+        "query": {
+          "engine": "SQLite",
+          "language": "SQL",
+          "description": "Show a deterministic ten-row preview at the source grain.",
+          "sql": "SELECT\n  week_start,\n  acquisition_channel,\n  signups,\n  activated_users,\n  paid_conversions,\n  revenue_usd,\n  support_tickets\nFROM product_growth\nORDER BY week_start, acquisition_channel\nLIMIT 10",
+          "tables_used": [
+            "product_growth"
+          ],
+          "filters": [
+            "First 10 rows ordered by week and acquisition channel"
+          ],
+          "executed_at": "2026-07-24T21:02:15.468821+00:00"
+        }
+      }
+    ],
+    "cards": [
+      {
+        "id": "latest-signups",
+        "dataset": "headline_metrics",
+        "sourceId": "weekly-growth-query",
+        "description": "Total signups in the latest complete week, with first-week context.",
+        "metrics": [
+          {
+            "label": "Latest signups",
+            "field": "latest_signups",
+            "format": "compact"
+          },
+          {
+            "label": "First week",
+            "field": "first_signups",
+            "format": "compact"
+          },
+          {
+            "label": "Change",
+            "field": "signup_growth",
+            "format": "percent",
+            "signed": true
+          }
+        ]
+      },
+      {
+        "id": "latest-revenue",
+        "dataset": "headline_metrics",
+        "sourceId": "weekly-growth-query",
+        "description": "Revenue in the latest complete week in USD, with first-week context.",
+        "metrics": [
+          {
+            "label": "Latest revenue",
+            "field": "latest_revenue",
+            "format": "currency"
+          },
+          {
+            "label": "First week",
+            "field": "first_revenue",
+            "format": "currency"
+          },
+          {
+            "label": "Change",
+            "field": "revenue_growth",
+            "format": "percent",
+            "signed": true
+          }
+        ]
+      },
+      {
+        "id": "latest-activation",
+        "dataset": "headline_metrics",
+        "sourceId": "weekly-growth-query",
+        "description": "Activated users divided by signups in the latest complete week.",
+        "metrics": [
+          {
+            "label": "Activation rate",
+            "field": "latest_activation_rate",
+            "format": "percent"
+          },
+          {
+            "label": "First week",
+            "field": "first_activation_rate",
+            "format": "percent"
+          },
+          {
+            "label": "Change (pp)",
+            "field": "activation_rate_change_pp",
+            "format": "number",
+            "signed": true
+          }
+        ]
+      },
+      {
+        "id": "latest-support-intensity",
+        "dataset": "headline_metrics",
+        "sourceId": "weekly-growth-query",
+        "description": "Support tickets per 100 signups in the latest complete week.",
+        "metrics": [
+          {
+            "label": "Tickets / 100",
+            "field": "latest_tickets_per_100",
+            "format": "number"
+          },
+          {
+            "label": "First week",
+            "field": "first_tickets_per_100",
+            "format": "number"
+          },
+          {
+            "label": "Change",
+            "field": "ticket_intensity_growth",
+            "format": "percent",
+            "signed": true
+          }
+        ]
+      }
+    ],
+    "charts": [
+      {
+        "id": "activation-trend",
+        "title": "Weekly activation rate",
+        "subtitle": "Activation peaked in late April before declining for four consecutive weeks.",
+        "type": "line",
+        "intent": "trend",
+        "question": "Is acquisition growth translating into activated users?",
+        "dataset": "weekly_summary",
+        "sourceId": "weekly-growth-query",
+        "encodings": {
+          "x": {
+            "field": "week_start",
+            "type": "temporal",
+            "label": "Week"
+          },
+          "y": {
+            "field": "activation_rate",
+            "type": "quantitative",
+            "format": "percent",
+            "label": "Activation rate"
+          },
+          "tooltip": [
+            {
+              "field": "signups",
+              "type": "quantitative",
+              "label": "Signups"
+            },
+            {
+              "field": "activated_users",
+              "type": "quantitative",
+              "label": "Activated users"
+            },
+            {
+              "field": "paid_conversions",
+              "type": "quantitative",
+              "label": "Paid conversions"
+            },
+            {
+              "field": "support_tickets",
+              "type": "quantitative",
+              "label": "Support tickets"
+            }
+          ]
+        },
+        "valueFormat": "percent",
+        "layout": "full",
+        "labels": {
+          "values": "endpoints"
+        },
+        "palette": {
+          "kind": "sequential",
+          "name": "blue"
+        },
+        "settings": {
+          "showPoints": "always"
+        },
+        "surface": {
+          "surface": "card",
+          "showControls": true,
+          "viewMode": "both"
+        }
+      },
+      {
+        "id": "channel-revenue-growth",
+        "title": "First-to-last-week revenue growth",
+        "subtitle": "Partners and Referral expanded while Paid Search finished below its starting revenue.",
+        "type": "bar",
+        "intent": "comparison",
+        "question": "Which acquisition channels converted growth into revenue?",
+        "dataset": "channel_summary",
+        "sourceId": "channel-growth-query",
+        "encodings": {
+          "x": {
+            "field": "acquisition_channel",
+            "type": "nominal",
+            "label": "Acquisition channel"
+          },
+          "y": {
+            "field": "revenue_growth",
+            "type": "quantitative",
+            "format": "percent",
+            "label": "Revenue growth"
+          },
+          "tooltip": [
+            {
+              "field": "first_revenue",
+              "type": "quantitative",
+              "format": "currency",
+              "label": "First-week revenue"
+            },
+            {
+              "field": "last_revenue",
+              "type": "quantitative",
+              "format": "currency",
+              "label": "Last-week revenue"
+            },
+            {
+              "field": "activation_rate_change_pp",
+              "type": "quantitative",
+              "format": "number",
+              "unit": "pp",
+              "label": "Activation-rate change"
+            },
+            {
+              "field": "ticket_growth",
+              "type": "quantitative",
+              "format": "percent",
+              "label": "Ticket growth"
+            }
+          ]
+        },
+        "layout": "full",
+        "valueFormat": "percent",
+        "labels": {
+          "values": "all"
+        },
+        "palette": {
+          "kind": "diverging",
+          "name": "blue-orange",
+          "midpoint": 0
+        },
+        "referenceLines": [
+          {
+            "axis": "y",
+            "value": 0,
+            "label": "No change",
+            "color": "neutral",
+            "lineStyle": "dashed"
+          }
+        ],
+        "settings": {
+          "orientation": "horizontal",
+          "sort": "descending",
+          "showValues": true
+        },
+        "surface": {
+          "surface": "card",
+          "showControls": true,
+          "viewMode": "both"
+        }
+      }
+    ],
+    "tables": [
+      {
+        "id": "channel-scorecard",
+        "title": "Channel performance scorecard",
+        "subtitle": "First-to-last complete-week changes; rate changes are percentage-point differences.",
+        "dataset": "channel_summary",
+        "sourceId": "channel-growth-query",
+        "layout": "full",
+        "density": "spacious",
+        "defaultSort": {
+          "field": "revenue_growth",
+          "direction": "desc"
+        },
+        "columns": [
+          {
+            "field": "acquisition_channel",
+            "label": "Channel",
+            "type": "text"
+          },
+          {
+            "field": "signup_growth",
+            "label": "Signup growth",
+            "format": "percent",
+            "movement": true
+          },
+          {
+            "field": "activation_rate_change_pp",
+            "label": "Activation \u0394 (pp)",
+            "format": "number",
+            "movement": true
+          },
+          {
+            "field": "paid_rate_change_pp",
+            "label": "Paid-rate \u0394 (pp)",
+            "format": "number",
+            "movement": true
+          },
+          {
+            "field": "revenue_growth",
+            "label": "Revenue growth",
+            "format": "percent",
+            "movement": true
+          },
+          {
+            "field": "ticket_growth",
+            "label": "Ticket growth",
+            "format": "percent",
+            "movement": true
+          }
+        ]
+      },
+      {
+        "id": "source-preview",
+        "title": "Source data preview",
+        "subtitle": "Ten deterministic rows at one channel per complete week.",
+        "dataset": "raw_preview",
+        "sourceId": "raw-growth-preview",
+        "layout": "full",
+        "density": "dense",
+        "defaultSort": {
+          "field": "week_start",
+          "direction": "asc"
+        },
+        "columns": [
+          {
+            "field": "week_start",
+            "label": "Week",
+            "type": "date"
+          },
+          {
+            "field": "acquisition_channel",
+            "label": "Channel",
+            "type": "text"
+          },
+          {
+            "field": "signups",
+            "label": "Signups",
+            "format": "number"
+          },
+          {
+            "field": "activated_users",
+            "label": "Activated",
+            "format": "number"
+          },
+          {
+            "field": "paid_conversions",
+            "label": "Paid",
+            "format": "number"
+          },
+          {
+            "field": "revenue_usd",
+            "label": "Revenue",
+            "format": "currency"
+          },
+          {
+            "field": "support_tickets",
+            "label": "Tickets",
+            "format": "number"
+          }
+        ]
+      }
+    ],
+    "blocks": [
+      {
+        "id": "report-title",
+        "type": "markdown",
+        "body": "# Synthetic Product Growth: Scale the winners, fix Paid Search",
+        "layout": "full"
+      },
+      {
+        "id": "executive-summary",
+        "type": "markdown",
+        "body": "## Executive Summary\n\n- **Top-line growth is strong.** Weekly signups increased **38.0%** and revenue increased **31.8%** from April 6 to May 25.\n- **Funnel quality is weakening.** Overall activation fell **3.7 percentage points**, even as acquisition volume increased.\n- **Paid Search is the clear drag.** Its activation rate fell **17.3 percentage points**, revenue declined **18.3%**, and support tickets rose **160%**.\n- **Recommended action:** protect the healthy Organic base, test more investment in Partners and Referral, and pause incremental Paid Search scaling until traffic quality and onboarding are diagnosed.",
+        "layout": "full"
+      },
+      {
+        "id": "headline-kpis",
+        "type": "metric-strip",
+        "cardIds": [
+          "latest-signups",
+          "latest-revenue",
+          "latest-activation",
+          "latest-support-intensity"
+        ],
+        "layout": "full"
+      },
+      {
+        "id": "volume-quality-finding",
+        "type": "markdown",
+        "sourceId": "weekly-growth-query",
+        "body": "## Volume is rising while funnel quality is slipping\n\nSignups increased every week, but activation peaked at **62.7%** on April 27 and fell to **57.5%** by May 25. Support intensity moved the other way, rising from **7.41** to **9.19 tickets per 100 signups**. The growth is real, but the business is acquiring progressively more users who need help or do not reach activation.",
+        "layout": "full"
+      },
+      {
+        "id": "activation-chart-block",
+        "type": "chart",
+        "chartId": "activation-trend",
+        "layout": "full"
+      },
+      {
+        "id": "channel-finding",
+        "type": "markdown",
+        "sourceId": "channel-growth-query",
+        "body": "## Paid Search is the drag; Partners and Referral lead quality\n\nPartners produced the fastest revenue growth (**77.1%**) while improving activation by **5.3 points**. Referral revenue rose **56.2%** with a **5.1-point** activation gain. Paid Search moved in the opposite direction: signups rose **47.2%**, but revenue fell **18.3%**. That divergence makes Paid Search the highest-priority diagnostic, not the highest-priority scaling channel.",
+        "layout": "full"
+      },
+      {
+        "id": "channel-chart-block",
+        "type": "chart",
+        "chartId": "channel-revenue-growth",
+        "layout": "full"
+      },
+      {
+        "id": "scorecard-intro",
+        "type": "markdown",
+        "body": "### Read the channel scorecard\n\nUse the exact values below to compare scale and quality together. Positive signup growth is only attractive when activation, paid conversion, and revenue also remain healthy.",
+        "layout": "full"
+      },
+      {
+        "id": "channel-table-block",
+        "type": "table",
+        "tableId": "channel-scorecard",
+        "layout": "full"
+      },
+      {
+        "id": "recommended-actions",
+        "type": "markdown",
+        "body": "## Recommended Next Steps\n\n1. **Diagnose Paid Search before adding budget.** Split performance by campaign, keyword, landing page, device, and geography; inspect whether the May decline is concentrated.\n2. **Run controlled scaling tests for Partners and Referral.** Increase exposure in small steps and monitor activation, paid conversion, revenue per signup, and support intensity.\n3. **Protect Organic quality.** Organic remains the largest healthy source; monitor it as the baseline while other channels change.\n4. **Add guardrails.** Pair signup targets with activation rate and tickets per 100 signups so volume cannot mask deteriorating acquisition quality.",
+        "layout": "full"
+      },
+      {
+        "id": "further-questions",
+        "type": "markdown",
+        "body": "## Further Questions\n\n- Did Paid Search mix shift toward a new campaign, keyword group, device, or geography?\n- Are support tickets concentrated in onboarding, billing, or product defects?\n- Do Partners and Referral retain their advantage after 30- or 60-day retention is added?\n- What is customer acquisition cost by channel, and does it change the scaling recommendation?",
+        "layout": "full"
+      },
+      {
+        "id": "source-preview-intro",
+        "type": "markdown",
+        "body": "## Explore the Underlying Rows\n\nThis preview exposes the dataset grain used by the SQL: one acquisition channel per complete week. Open the source controls on cards, charts, and tables to inspect definitions and queries.",
+        "layout": "full"
+      },
+      {
+        "id": "source-preview-block",
+        "type": "table",
+        "tableId": "source-preview",
+        "layout": "full"
+      },
+      {
+        "id": "caveats",
+        "type": "markdown",
+        "body": "## Caveats and Assumptions\n\n- The dataset is synthetic and demonstrates workflow mechanics rather than a real company result.\n- There are only eight complete weeks, so findings are descriptive and not causal.\n- Acquisition cost, retention, campaign mix, and ticket categories are absent; each could change the recommended allocation.\n- Rates use signups as the denominator, and no rows are excluded.",
+        "layout": "full"
+      }
+    ]
+  },
+  "snapshot": {
+    "version": 1,
+    "generatedAt": "2026-07-24T21:02:15.468821+00:00",
+    "status": "fixture",
+    "datasets": {
+      "headline_metrics": [
+        {
+          "latest_signups": 1490,
+          "first_signups": 1080,
+          "signup_growth": 0.3796,
+          "latest_revenue": 60080.0,
+          "first_revenue": 45600.0,
+          "revenue_growth": 0.3175,
+          "latest_activation_rate": 0.5752,
+          "first_activation_rate": 0.612,
+          "activation_rate_change": -0.0368,
+          "activation_rate_change_pp": -3.68,
+          "latest_tickets_per_100": 9.19,
+          "first_tickets_per_100": 7.41,
+          "ticket_intensity_growth": 0.2402
+        }
+      ],
+      "weekly_summary": [
+        {
+          "week_start": "2026-04-06",
+          "signups": 1080,
+          "activated_users": 661,
+          "activation_rate": 0.612,
+          "paid_conversions": 221,
+          "signup_to_paid_rate": 0.2046,
+          "revenue_usd": 45600.0,
+          "support_tickets": 80,
+          "tickets_per_100_signups": 7.41
+        },
+        {
+          "week_start": "2026-04-13",
+          "signups": 1122,
+          "activated_users": 692,
+          "activation_rate": 0.6168,
+          "paid_conversions": 231,
+          "signup_to_paid_rate": 0.2059,
+          "revenue_usd": 47680.0,
+          "support_tickets": 79,
+          "tickets_per_100_signups": 7.04
+        },
+        {
+          "week_start": "2026-04-20",
+          "signups": 1169,
+          "activated_users": 729,
+          "activation_rate": 0.6236,
+          "paid_conversions": 244,
+          "signup_to_paid_rate": 0.2087,
+          "revenue_usd": 50400.0,
+          "support_tickets": 85,
+          "tickets_per_100_signups": 7.27
+        },
+        {
+          "week_start": "2026-04-27",
+          "signups": 1219,
+          "activated_users": 764,
+          "activation_rate": 0.6267,
+          "paid_conversions": 256,
+          "signup_to_paid_rate": 0.21,
+          "revenue_usd": 52960.0,
+          "support_tickets": 88,
+          "tickets_per_100_signups": 7.22
+        },
+        {
+          "week_start": "2026-05-04",
+          "signups": 1302,
+          "activated_users": 799,
+          "activation_rate": 0.6137,
+          "paid_conversions": 265,
+          "signup_to_paid_rate": 0.2035,
+          "revenue_usd": 54920.0,
+          "support_tickets": 98,
+          "tickets_per_100_signups": 7.53
+        },
+        {
+          "week_start": "2026-05-11",
+          "signups": 1372,
+          "activated_users": 828,
+          "activation_rate": 0.6035,
+          "paid_conversions": 273,
+          "signup_to_paid_rate": 0.199,
+          "revenue_usd": 56720.0,
+          "support_tickets": 110,
+          "tickets_per_100_signups": 8.02
+        },
+        {
+          "week_start": "2026-05-18",
+          "signups": 1435,
+          "activated_users": 846,
+          "activation_rate": 0.5895,
+          "paid_conversions": 281,
+          "signup_to_paid_rate": 0.1958,
+          "revenue_usd": 58520.0,
+          "support_tickets": 123,
+          "tickets_per_100_signups": 8.57
+        },
+        {
+          "week_start": "2026-05-25",
+          "signups": 1490,
+          "activated_users": 857,
+          "activation_rate": 0.5752,
+          "paid_conversions": 288,
+          "signup_to_paid_rate": 0.1933,
+          "revenue_usd": 60080.0,
+          "support_tickets": 137,
+          "tickets_per_100_signups": 9.19
+        }
+      ],
+      "channel_summary": [
+        {
+          "acquisition_channel": "Partners",
+          "first_signups": 120,
+          "last_signups": 205,
+          "signup_growth": 0.7083,
+          "first_activation_rate": 0.6833,
+          "last_activation_rate": 0.7366,
+          "activation_rate_change": 0.0533,
+          "activation_rate_change_pp": 5.33,
+          "first_paid_rate": 0.2917,
+          "last_paid_rate": 0.3024,
+          "paid_rate_change": 0.0108,
+          "paid_rate_change_pp": 1.08,
+          "first_revenue": 8400.0,
+          "last_revenue": 14880.0,
+          "revenue_growth": 0.7714,
+          "first_tickets": 10,
+          "last_tickets": 14,
+          "ticket_growth": 0.4
+        },
+        {
+          "acquisition_channel": "Referral",
+          "first_signups": 180,
+          "last_signups": 245,
+          "signup_growth": 0.3611,
+          "first_activation_rate": 0.7,
+          "last_activation_rate": 0.751,
+          "activation_rate_change": 0.051,
+          "activation_rate_change_pp": 5.1,
+          "first_paid_rate": 0.2667,
+          "last_paid_rate": 0.3061,
+          "paid_rate_change": 0.0395,
+          "paid_rate_change_pp": 3.95,
+          "first_revenue": 9600.0,
+          "last_revenue": 15000.0,
+          "revenue_growth": 0.5625,
+          "first_tickets": 12,
+          "last_tickets": 14,
+          "ticket_growth": 0.1667
+        },
+        {
+          "acquisition_channel": "Organic",
+          "first_signups": 420,
+          "last_signups": 510,
+          "signup_growth": 0.2143,
+          "first_activation_rate": 0.5905,
+          "last_activation_rate": 0.6118,
+          "activation_rate_change": 0.0213,
+          "activation_rate_change_pp": 2.13,
+          "first_paid_rate": 0.1857,
+          "last_paid_rate": 0.2,
+          "paid_rate_change": 0.0143,
+          "paid_rate_change_pp": 1.43,
+          "first_revenue": 15600.0,
+          "last_revenue": 20400.0,
+          "revenue_growth": 0.3077,
+          "first_tickets": 28,
+          "last_tickets": 31,
+          "ticket_growth": 0.1071
+        },
+        {
+          "acquisition_channel": "Paid Search",
+          "first_signups": 360,
+          "last_signups": 530,
+          "signup_growth": 0.4722,
+          "first_activation_rate": 0.5694,
+          "last_activation_rate": 0.3962,
+          "activation_rate_change": -0.1732,
+          "activation_rate_change_pp": -17.32,
+          "first_paid_rate": 0.1667,
+          "last_paid_rate": 0.0925,
+          "paid_rate_change": -0.0742,
+          "paid_rate_change_pp": -7.42,
+          "first_revenue": 12000.0,
+          "last_revenue": 9800.0,
+          "revenue_growth": -0.1833,
+          "first_tickets": 30,
+          "last_tickets": 78,
+          "ticket_growth": 1.6
+        }
+      ],
+      "raw_preview": [
+        {
+          "week_start": "2026-04-06",
+          "acquisition_channel": "Organic",
+          "signups": 420,
+          "activated_users": 248,
+          "paid_conversions": 78,
+          "revenue_usd": 15600.0,
+          "support_tickets": 28
+        },
+        {
+          "week_start": "2026-04-06",
+          "acquisition_channel": "Paid Search",
+          "signups": 360,
+          "activated_users": 205,
+          "paid_conversions": 60,
+          "revenue_usd": 12000.0,
+          "support_tickets": 30
+        },
+        {
+          "week_start": "2026-04-06",
+          "acquisition_channel": "Partners",
+          "signups": 120,
+          "activated_users": 82,
+          "paid_conversions": 35,
+          "revenue_usd": 8400.0,
+          "support_tickets": 10
+        },
+        {
+          "week_start": "2026-04-06",
+          "acquisition_channel": "Referral",
+          "signups": 180,
+          "activated_users": 126,
+          "paid_conversions": 48,
+          "revenue_usd": 9600.0,
+          "support_tickets": 12
+        },
+        {
+          "week_start": "2026-04-13",
+          "acquisition_channel": "Organic",
+          "signups": 432,
+          "activated_users": 257,
+          "paid_conversions": 80,
+          "revenue_usd": 16000.0,
+          "support_tickets": 27
+        },
+        {
+          "week_start": "2026-04-13",
+          "acquisition_channel": "Paid Search",
+          "signups": 375,
+          "activated_users": 214,
+          "paid_conversions": 63,
+          "revenue_usd": 12600.0,
+          "support_tickets": 31
+        },
+        {
+          "week_start": "2026-04-13",
+          "acquisition_channel": "Partners",
+          "signups": 128,
+          "activated_users": 89,
+          "paid_conversions": 37,
+          "revenue_usd": 8880.0,
+          "support_tickets": 10
+        },
+        {
+          "week_start": "2026-04-13",
+          "acquisition_channel": "Referral",
+          "signups": 187,
+          "activated_users": 132,
+          "paid_conversions": 51,
+          "revenue_usd": 10200.0,
+          "support_tickets": 11
+        },
+        {
+          "week_start": "2026-04-20",
+          "acquisition_channel": "Organic",
+          "signups": 445,
+          "activated_users": 269,
+          "paid_conversions": 84,
+          "revenue_usd": 16800.0,
+          "support_tickets": 29
+        },
+        {
+          "week_start": "2026-04-20",
+          "acquisition_channel": "Paid Search",
+          "signups": 392,
+          "activated_users": 225,
+          "paid_conversions": 66,
+          "revenue_usd": 13200.0,
+          "support_tickets": 33
+        }
+      ]
+    }
+  },
+  "sources": [
+    {
+      "id": "weekly-growth-query",
+      "label": "Synthetic product-growth demo \u2014 weekly summary",
+      "path": "data-analytics-lab/sample-product-growth.csv",
+      "query": {
+        "engine": "SQLite",
+        "language": "SQL",
+        "description": "Aggregate the synthetic channel rows into weekly funnel, revenue, and support metrics.",
+        "sql": "SELECT\n  week_start,\n  SUM(signups) AS signups,\n  SUM(activated_users) AS activated_users,\n  ROUND(1.0 * SUM(activated_users) / SUM(signups), 4) AS activation_rate,\n  SUM(paid_conversions) AS paid_conversions,\n  ROUND(1.0 * SUM(paid_conversions) / SUM(signups), 4) AS signup_to_paid_rate,\n  SUM(revenue_usd) AS revenue_usd,\n  SUM(support_tickets) AS support_tickets,\n  ROUND(100.0 * SUM(support_tickets) / SUM(signups), 2) AS tickets_per_100_signups\nFROM product_growth\nGROUP BY week_start\nORDER BY week_start",
+        "tables_used": [
+          "product_growth"
+        ],
+        "filters": [
+          "Complete weeks from 2026-04-06 through 2026-05-25",
+          "All four acquisition channels",
+          "Synthetic fixture data"
+        ],
+        "metric_definitions": [
+          "Activation rate = activated users / signups for each week.",
+          "Signup-to-paid rate = paid conversions / signups for each week.",
+          "Tickets per 100 signups = 100 \u00d7 support tickets / signups for each week.",
+          "Revenue is the sum of revenue_usd in USD for each complete week."
+        ],
+        "executed_at": "2026-07-24T21:02:15.468821+00:00"
+      }
+    },
+    {
+      "id": "channel-growth-query",
+      "label": "Synthetic product-growth demo \u2014 channel comparison",
+      "path": "data-analytics-lab/sample-product-growth.csv",
+      "query": {
+        "engine": "SQLite",
+        "language": "SQL",
+        "description": "Compare first and last complete weeks for each acquisition channel.",
+        "sql": "WITH channel_baselines AS (\n  SELECT\n    acquisition_channel,\n    MAX(CASE WHEN week_start = (SELECT MIN(week_start) FROM product_growth)\n      THEN signups END) AS first_signups,\n    MAX(CASE WHEN week_start = (SELECT MAX(week_start) FROM product_growth)\n      THEN signups END) AS last_signups,\n    1.0 * MAX(CASE WHEN week_start = (SELECT MIN(week_start) FROM product_growth)\n      THEN activated_users END)\n      / MAX(CASE WHEN week_start = (SELECT MIN(week_start) FROM product_growth)\n      THEN signups END) AS first_activation_rate,\n    1.0 * MAX(CASE WHEN week_start = (SELECT MAX(week_start) FROM product_growth)\n      THEN activated_users END)\n      / MAX(CASE WHEN week_start = (SELECT MAX(week_start) FROM product_growth)\n      THEN signups END) AS last_activation_rate,\n    1.0 * MAX(CASE WHEN week_start = (SELECT MIN(week_start) FROM product_growth)\n      THEN paid_conversions END)\n      / MAX(CASE WHEN week_start = (SELECT MIN(week_start) FROM product_growth)\n      THEN signups END) AS first_paid_rate,\n    1.0 * MAX(CASE WHEN week_start = (SELECT MAX(week_start) FROM product_growth)\n      THEN paid_conversions END)\n      / MAX(CASE WHEN week_start = (SELECT MAX(week_start) FROM product_growth)\n      THEN signups END) AS last_paid_rate,\n    MAX(CASE WHEN week_start = (SELECT MIN(week_start) FROM product_growth)\n      THEN revenue_usd END) AS first_revenue,\n    MAX(CASE WHEN week_start = (SELECT MAX(week_start) FROM product_growth)\n      THEN revenue_usd END) AS last_revenue,\n    MAX(CASE WHEN week_start = (SELECT MIN(week_start) FROM product_growth)\n      THEN support_tickets END) AS first_tickets,\n    MAX(CASE WHEN week_start = (SELECT MAX(week_start) FROM product_growth)\n      THEN support_tickets END) AS last_tickets\n  FROM product_growth\n  GROUP BY acquisition_channel\n)\nSELECT\n  acquisition_channel,\n  first_signups,\n  last_signups,\n  ROUND(1.0 * last_signups / first_signups - 1, 4) AS signup_growth,\n  ROUND(first_activation_rate, 4) AS first_activation_rate,\n  ROUND(last_activation_rate, 4) AS last_activation_rate,\n  ROUND(last_activation_rate - first_activation_rate, 4) AS activation_rate_change,\n  ROUND(100.0 * (last_activation_rate - first_activation_rate), 2) AS activation_rate_change_pp,\n  ROUND(first_paid_rate, 4) AS first_paid_rate,\n  ROUND(last_paid_rate, 4) AS last_paid_rate,\n  ROUND(last_paid_rate - first_paid_rate, 4) AS paid_rate_change,\n  ROUND(100.0 * (last_paid_rate - first_paid_rate), 2) AS paid_rate_change_pp,\n  first_revenue,\n  last_revenue,\n  ROUND(1.0 * last_revenue / first_revenue - 1, 4) AS revenue_growth,\n  first_tickets,\n  last_tickets,\n  ROUND(1.0 * last_tickets / first_tickets - 1, 4) AS ticket_growth\nFROM channel_baselines\nORDER BY revenue_growth DESC",
+        "tables_used": [
+          "product_growth"
+        ],
+        "filters": [
+          "First week: 2026-04-06",
+          "Last week: 2026-05-25",
+          "Synthetic fixture data"
+        ],
+        "metric_definitions": [
+          "Revenue growth = last-week revenue / first-week revenue \u2212 1.",
+          "Activation-rate change = last-week activation rate \u2212 first-week activation rate.",
+          "Paid-rate change = last-week paid conversions/signups \u2212 first-week paid conversions/signups.",
+          "Ticket growth = last-week support tickets / first-week support tickets \u2212 1."
+        ],
+        "executed_at": "2026-07-24T21:02:15.468821+00:00"
+      }
+    },
+    {
+      "id": "raw-growth-preview",
+      "label": "Synthetic product-growth demo \u2014 source preview",
+      "path": "data-analytics-lab/sample-product-growth.csv",
+      "query": {
+        "engine": "SQLite",
+        "language": "SQL",
+        "description": "Show a deterministic ten-row preview at the source grain.",
+        "sql": "SELECT\n  week_start,\n  acquisition_channel,\n  signups,\n  activated_users,\n  paid_conversions,\n  revenue_usd,\n  support_tickets\nFROM product_growth\nORDER BY week_start, acquisition_channel\nLIMIT 10",
+        "tables_used": [
+          "product_growth"
+        ],
+        "filters": [
+          "First 10 rows ordered by week and acquisition channel"
+        ],
+        "executed_at": "2026-07-24T21:02:15.468821+00:00"
+      }
+    }
+  ]
+}
