@@ -49,3 +49,17 @@ Paste one of these into a new Codex task and attach or reference
 
 This data is synthetic. The findings demonstrate analysis and artifact
 workflows; they do not describe a real product or company.
+
+## Compare two synthetic runs
+
+Run `python compare_fixture.py` and open `.comparison/index.html` locally.
+The view compares the bundled original fixture to a one-cell edit: Paid Search
+activations go from 210 to 500 in the final week, with signups unchanged.
+Two disposable executions of the same builder supply the figures and links
+to the original report JSON. Rate changes use percentage points; revenue
+change uses percent. A reversal in activation is not a spending recommendation.
+
+This optional example only accepts the original bundled synthetic CSV.
+It does not change the source CSV, notebook, or canonical artifacts. The
+generated view and reports are ignored by Git. Run
+`python -m unittest -v` to verify both the existing outputs and the comparison.

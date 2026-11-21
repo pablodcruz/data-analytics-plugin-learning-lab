@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<title>One cell · Data Analytics Learning Lab</title>
+<style>
+  :root {color-scheme:light; --paper:#f4f0e6; --tile:#fcfaf4; --ink:#202d30; --muted:#506064; --line:#c4c6b9; --low:#944736; --high:#176052; --night:#23383a; --mint:#d2e5d3; --mono:ui-monospace,SFMono-Regular,Consolas,monospace;}
+  * {box-sizing:border-box}
+  html {background:var(--paper); color:var(--ink)}
+  body {margin:0; font:16px/1.52 system-ui,sans-serif}
+  .shell {width:min(1040px,calc(100% - 80px));margin-inline:auto}
+  h1,h2,h3,p,figure {margin:0}
+  a {color:#17594e;text-underline-offset:3px}
+  :focus-visible {outline:2px solid #934635;outline-offset:4px}
+  .tag,.label,.axis,.book {font:.72rem/1.4 var(--mono);font-weight:700;letter-spacing:.085em;text-transform:uppercase}
+  .mast {display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:67px;border-bottom:1px solid var(--line)}
+  .lab {display:flex;gap:9px;align-items:center;font-size:.9rem;font-weight:690}
+  .sigil {display:grid;place-items:center;background:var(--night);color:#fcfaf4;width:28px;height:25px;font:700 .76rem var(--mono)}
+  .tag {color:var(--high);text-align:right}
+  .intro {display:grid;grid-template-columns:1.2fr 1fr;gap:32px;align-items:end;padding-block:40px 29px}
+  .book {color:var(--low)}
+  h1 {font:normal clamp(46px,7vw,86px)/.92 Georgia,serif;letter-spacing:-.069em;margin:9px 0 12px}
+  .lede {max-width:43ch;color:var(--muted)}
+  .fixed-input {border-left:1px solid var(--line);padding-left:24px}
+  .fixed-input h2 {font:700 .75rem var(--mono);text-transform:uppercase;letter-spacing:.065em}
+  .fixed-input > p {color:var(--muted);font-size:.86rem;margin-top:4px}
+  .inputs {display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
+  .input {min-width:0;background:var(--tile);padding:10px 12px;border-top:2px solid var(--night)}
+  .input:nth-child(2) {background:#e6eee0;border-color:var(--high)}
+  .input .label {color:var(--muted);font-size:.64rem}
+  .input strong {font:normal 2.05rem/1.13 Georgia,serif}
+  .input span {font-size:.76rem;color:var(--muted)}
+  .comparison {background:var(--tile);border:1px solid var(--line);border-top:4px solid var(--night);padding:21px clamp(14px,3.2vw,35px) 24px}
+  h2 {font:normal clamp(24px,3.8vw,43px)/1.1 Georgia,serif;letter-spacing:-.04em}
+  .unit {margin-top:5px;font-size:.84rem;color:var(--muted)}
+  .plot {margin:19px 0 0;display:grid;gap:10px}
+  .plot-row,.axis-row {display:grid;grid-template-columns:minmax(85px,1fr) minmax(120px,5fr) minmax(64px,1fr);gap:12px;align-items:center}
+  .axis {height:1.4em;position:relative;color:var(--muted);letter-spacing:0;font-size:.65rem}
+  .axis span {position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
+  .axis span:first-child {left:0;transform:none}
+  .axis span:nth-child(2) {left:25%}
+  .axis span:nth-child(3) {left:50%}
+  .axis span:nth-child(4) {left:75%}
+  .axis span:last-child {right:0;transform:none}
+  .row-key {white-space:nowrap;font-size:.8rem;font-weight:760}
+  .stamp {display:inline-flex;justify-content:center;width:1.45em;margin-right:3px;background:#e9e9df;color:#344348;font:700 .75rem/1.65 var(--mono)}
+  .track {height:33px;position:relative;background:
+    linear-gradient(to right,transparent calc(50% - .5px),#5a6461 calc(50% - .5px),#5a6461 calc(50% + .5px),transparent calc(50% + .5px)),
+    repeating-linear-gradient(to right,#d2d4c7 0,#d2d4c7 1px,transparent 1px,transparent 25%);
+    border-right:1px solid #d2d4c7;background-color:#f1f2e9}
+  .fill {position:absolute;top:3px;bottom:3px;width:var(--extent)}
+  .down .fill {right:50%;background:repeating-linear-gradient(135deg,#914532 0,#914532 6px,#a85d45 6px,#a85d45 9px)}
+  .up .fill {left:50%;background:var(--high)}
+  .reading {text-align:right;color:var(--low);line-height:1;white-space:nowrap}
+  .up .reading {color:var(--high)}
+  .reading strong {font-size:clamp(16px,2.5vw,25px);font-variant-numeric:tabular-nums}
+  .reading abbr {text-decoration:none;font-size:.65rem}
+  .checks {margin-top:16px;display:grid;grid-template-columns:minmax(175px,1fr) 1.9fr;gap:20px;align-items:center;background:var(--night);color:var(--tile);padding:15px clamp(13px,3vw,30px)}
+  .checks h2 {font-size:clamp(23px,3vw,35px)}
+  .checks p {color:var(--mint);margin-top:4px;font-size:.82rem;max-width:31ch}
+  table {width:100%;border-collapse:collapse;font-size:.87rem}
+  th,td {text-align:left;padding:5px 4px;border-bottom:1px solid #587071}
+  thead th {color:var(--mint);font-size:.74rem;font-weight:650}
+  tbody th {font-weight:550}
+  td {font-weight:750;font-variant-numeric:tabular-nums;white-space:nowrap}
+  tr:last-child td,tr:last-child th {border-bottom:0}
+  thead tr:last-child th {border-bottom:1px solid #587071}
+  details {border-block:1px solid var(--line);margin-top:18px}
+  summary {min-height:44px;padding:10px 1px;cursor:pointer;color:var(--high);font-weight:730}
+  summary:hover {text-decoration:underline}
+  .sources {display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:0 0 14px}
+  .source {background:var(--tile);padding:12px;border-left:2px solid var(--line);font-size:.87rem}
+  .source h3 {font-size:.93rem}
+  .source p {margin:6px 0}
+  .source a {display:inline-flex;align-items:center;min-height:44px;font-weight:700}
+  footer {color:var(--muted);font-size:.76rem;min-height:72px;padding-block:15px}
+  @media(max-width:690px) {
+    .shell {width:calc(100% - 28px)}
+    .mast {min-height:54px;gap:7px}
+    .lab {font-size:.74rem}
+    .tag {font-size:.59rem;letter-spacing:.04em}
+    .intro {grid-template-columns:1fr;gap:16px;padding-block:24px 16px}
+    h1 {margin-bottom:9px}
+    .lede {font-size:.9rem}
+    .fixed-input {padding:0;border:0}
+    .comparison {padding-block:15px 16px}
+    .plot-row,.axis-row {grid-template-columns:70px minmax(76px,1fr) 60px;gap:5px}
+    .row-key {font-size:.72rem}
+    .stamp {width:1.2em;margin:0}
+    .track {height:26px}
+    .checks {grid-template-columns:1fr;gap:5px;padding-block:12px}
+    .checks p {max-width:none}
+    .sources {grid-template-columns:1fr}
+  }
+</style>
+<body>
+<header class="mast shell">
+  <span class="lab"><span class="sigil" aria-hidden="true">Δ</span>Data Analytics Learning Lab</span>
+  <span class="tag">Synthetic data</span>
+</header>
+<main class="shell">
+  <div class="intro">
+    <div>
+      <p class="book">Worked example / 01</p>
+      <h1>One cell changes<br> the story.</h1>
+      <p class="lede">The same report, rebuilt twice. Only one cell changes: the number of Paid Search users who activated in the week of May 25.</p>
+    </div>
+    <section class="fixed-input" aria-labelledby="input-heading">
+      <h2 id="input-heading">Changed input · activated users</h2>
+      <p>Signups stay fixed in both runs.</p>
+      <div class="inputs">$inputs</div>
+    </section>
+  </div>
+  <figure class="comparison" aria-labelledby="comparison-heading">
+    <figcaption>
+      <h2 id="comparison-heading">Paid Search activation flips direction</h2>
+      <p class="unit">Apr 6 to May 25, 2026 · change in activation rate, in percentage points (pp)</p>
+    </figcaption>
+    <div class="plot">
+      <div class="axis-row" aria-hidden="true"><span></span><div class="axis"><span>−40</span><span>−20</span><span>0</span><span>+20</span><span>+40</span></div><span></span></div>
+      $bars
+    </div>
+  </figure>
+  <section class="checks" aria-labelledby="checks-heading">
+    <div><h2 id="checks-heading">Revenue did not flip.</h2><p>It is measured in percent, not percentage points. A better activation result alone does not justify more ad spend.</p></div>
+    <table aria-label="Other first-to-last changes">
+      <thead><tr><th scope="col">Run</th><th scope="col">Overall activation<br>(percentage points)</th><th scope="col">Paid Search revenue<br>(percent)</th></tr></thead>
+      <tbody>$checks</tbody>
+    </table>
+  </section>
+  <details>
+    <summary>Read the generated report evidence</summary>
+    <div class="sources">$evidence</div>
+  </details>
+</main>
+<footer class="shell">Local teaching prototype. No company, live data, or deployed report.</footer>
+</body>
+</html>
