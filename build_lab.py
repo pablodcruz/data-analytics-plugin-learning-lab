@@ -193,10 +193,52 @@ def execute_notebook(notebook: dict) -> None:
         os.chdir(previous_cwd)
 
 
-def build_notebook(first: dict, last: dict, paid_search: dict) -> dict:
-    signup_growth = last["signups"] / first["signups"] - 1
-    revenue_growth = last["revenue_usd"] / first["revenue_usd"] - 1
-    activation_change = last["activation_rate"] - first["activation_rate"]
+def movement(delta: float | None, *, pp: bool = False) -> str:
+    """Describe changes at the same precision as displayed in the lesson."""
+    if delta is None:
+        return "has no percentage comparison (zero or missing baseline)"
+    amount = round(delta if pp else 100 * delta, 1)
+    if amount == 0:
+        return "was unchanged at display precision"
+    unit = " percentage points" if pp else "%"
+    verb = "rose" if amount > 0 else "fell"
+    return f"{verb} {abs(amount):.1f}{unit}"
+
+
+def relative_change(first: float, last: float) -> float | None:
+    return last / first - 1 if first else None
+
+
+def describe_run(weekly: list[dict], channels: list[dict]) -> dict[str, str]:
+    first, last = weekly[0], weekly[-1]
+    signups = relative_change(first["signups"], last["signups"])
+    revenue = relative_change(first["revenue_usd"], last["revenue_usd"])
+    overall = 100 * (last["activation_rate"] - first["activation_rate"])
+    volume = (f"From {first['week_start']} to {last['week_start']}, weekly signups "
+              f"{movement(signups)} and revenue {movement(revenue)}.")
+    activation = f"Overall activation {movement(overall, pp=True)}."
+    ordered = sorted(channels, key=lambda r: (-r["activation_rate_change_pp"], r["acquisition_channel"]))
+    comparison = "\n".join(
+        f"- {r['acquisition_channel']} activation {movement(r['activation_rate_change_pp'], pp=True)}; "
+        f"revenue {movement(r['revenue_growth'])}."
+        for r in ordered
+    )
+    falling = [r["acquisition_channel"] for r in ordered if round(r["activation_rate_change_pp"], 1) < 0]
+    followup = (
+        "Inspect the activation declines in " + ", ".join(falling) +
+        " before attributing them to a campaign or onboarding change."
+        if falling else
+        "No channel has a first-to-last activation decline at the displayed precision. "
+        "Check intermediate weeks before inferring a steady trend."
+    )
+    support = (f"Support intensity starts at {first['tickets_per_100_signups']:.2f} and "
+               f"ends at {last['tickets_per_100_signups']:.2f} tickets per 100 signups.")
+    return {"volume": volume, "activation": activation, "channels": comparison,
+            "followup": followup, "support": support}
+
+
+def build_notebook(weekly: list[dict], channels: list[dict]) -> dict:
+    story = describe_run(weekly, channels)
     cells = [
         notebook_cell(
             "markdown",
@@ -206,12 +248,8 @@ def build_notebook(first: dict, last: dict, paid_search: dict) -> dict:
         ),
         notebook_cell(
             "markdown",
-            "## tl;dr\n\n"
-            f"- Weekly signups rose **{signup_growth:.1%}** and revenue rose "
-            f"**{revenue_growth:.1%}** from the first to the last week.\n"
-            f"- Overall activation fell **{abs(activation_change) * 100:.1f} percentage points**.\n"
-            f"- Paid Search activation fell **{abs(paid_search['activation_rate_change_pp']):.1f} percentage points** "
-            f"while support tickets rose **{paid_search['ticket_growth']:.0%}**, making it the clearest issue to investigate.",
+            f"## Results at a glance\n\n{story['volume']} {story['activation']}\n\n"
+            + story["channels"],
         ),
         notebook_cell(
             "markdown",
@@ -259,10 +297,8 @@ def build_notebook(first: dict, last: dict, paid_search: dict) -> dict:
         ),
         notebook_cell(
             "markdown",
-            "## Takeaways\n\n"
-            "1. Preserve growth, but do not evaluate acquisition on signup volume alone.\n"
-            "2. Investigate Paid Search targeting, landing pages, and onboarding because its volume rose while downstream quality deteriorated.\n"
-            "3. Test incremental investment in Partners and Referral, where signup growth coincided with stronger activation and revenue.",
+            "## Takeaways\n\n" + story["followup"] +
+            " Acquisition cost and retention are missing; these comparisons do not establish a budget decision.",
         ),
     ]
     return {
@@ -288,7 +324,6 @@ def build_artifact(
 ) -> dict:
     first = weekly[0]
     last = weekly[-1]
-    paid_search = next(row for row in channels if row["acquisition_channel"] == "Paid Search")
     headline_metrics = [
         {
             "latest_signups": last["signups"],
@@ -296,7 +331,7 @@ def build_artifact(
             "signup_growth": round(last["signups"] / first["signups"] - 1, 4),
             "latest_revenue": last["revenue_usd"],
             "first_revenue": first["revenue_usd"],
-            "revenue_growth": round(last["revenue_usd"] / first["revenue_usd"] - 1, 4),
+            "revenue_growth": relative_change(first["revenue_usd"], last["revenue_usd"]),
             "latest_activation_rate": last["activation_rate"],
             "first_activation_rate": first["activation_rate"],
             "activation_rate_change": round(last["activation_rate"] - first["activation_rate"], 4),
@@ -305,9 +340,8 @@ def build_artifact(
             ),
             "latest_tickets_per_100": last["tickets_per_100_signups"],
             "first_tickets_per_100": first["tickets_per_100_signups"],
-            "ticket_intensity_growth": round(
-                last["tickets_per_100_signups"] / first["tickets_per_100_signups"] - 1,
-                4,
+            "ticket_intensity_growth": relative_change(
+                first["tickets_per_100_signups"], last["tickets_per_100_signups"]
             ),
         }
     ]
@@ -322,7 +356,7 @@ def build_artifact(
             "sql": WEEKLY_SQL,
             "tables_used": ["product_growth"],
             "filters": [
-                "Complete weeks from 2026-04-06 through 2026-05-25",
+                f"Complete weeks from {first['week_start']} through {last['week_start']}",
                 "All four acquisition channels",
                 "Synthetic fixture data",
             ],
@@ -346,8 +380,8 @@ def build_artifact(
             "sql": CHANNEL_SQL,
             "tables_used": ["product_growth"],
             "filters": [
-                "First week: 2026-04-06",
-                "Last week: 2026-05-25",
+                f"First week: {first['week_start']}",
+                f"Last week: {last['week_start']}",
                 "Synthetic fixture data",
             ],
             "metric_definitions": [
@@ -374,15 +408,13 @@ def build_artifact(
         },
     }
     sources = [weekly_source, channel_source, preview_source]
-    signup_growth = headline_metrics[0]["signup_growth"]
-    revenue_growth = headline_metrics[0]["revenue_growth"]
-    activation_change = headline_metrics[0]["activation_rate_change"]
+    story = describe_run(weekly, channels)
     return {
         "surface": "report",
         "manifest": {
             "version": 1,
             "surface": "report",
-            "title": "Synthetic Product Growth: Scale the winners, fix Paid Search",
+            "title": "Synthetic Product Growth: Compare volume and activation",
             "description": "A hands-on Data Analytics learning lab built from synthetic product-growth data.",
             "generatedAt": generated_at,
             "sources": sources,
@@ -436,7 +468,7 @@ def build_artifact(
                 {
                     "id": "activation-trend",
                     "title": "Weekly activation rate",
-                    "subtitle": "Activation peaked in late April before declining for four consecutive weeks.",
+                    "subtitle": story["activation"],
                     "type": "line",
                     "intent": "trend",
                     "question": "Is acquisition growth translating into activated users?",
@@ -467,7 +499,7 @@ def build_artifact(
                 {
                     "id": "channel-revenue-growth",
                     "title": "First-to-last-week revenue growth",
-                    "subtitle": "Partners and Referral expanded while Paid Search finished below its starting revenue.",
+                    "subtitle": "Percentage change from each channel’s own first-week revenue.",
                     "type": "bar",
                     "intent": "comparison",
                     "question": "Which acquisition channels converted growth into revenue?",
@@ -546,25 +578,15 @@ def build_artifact(
                 {
                     "id": "report-title",
                     "type": "markdown",
-                    "body": "# Synthetic Product Growth: Scale the winners, fix Paid Search",
+                    "body": "# Synthetic Product Growth: Compare volume and activation",
                     "layout": "full",
                 },
                 {
                     "id": "executive-summary",
                     "type": "markdown",
                     "body": (
-                        "## Executive Summary\n\n"
-                        f"- **Top-line growth is strong.** Weekly signups increased **{signup_growth:.1%}** "
-                        f"and revenue increased **{revenue_growth:.1%}** from April 6 to May 25.\n"
-                        f"- **Funnel quality is weakening.** Overall activation fell "
-                        f"**{abs(activation_change) * 100:.1f} percentage points**, even as acquisition volume increased.\n"
-                        f"- **Paid Search is the clear drag.** Its activation rate fell "
-                        f"**{abs(paid_search['activation_rate_change_pp']):.1f} percentage points**, revenue declined "
-                        f"**{abs(paid_search['revenue_growth']):.1%}**, and support tickets rose "
-                        f"**{paid_search['ticket_growth']:.0%}**.\n"
-                        "- **Recommended action:** protect the healthy Organic base, test more investment in "
-                        "Partners and Referral, and pause incremental Paid Search scaling until traffic quality "
-                        "and onboarding are diagnosed."
+                        f"## Executive summary\n\n{story['volume']} {story['activation']}\n\n"
+                        f"{story['followup']}"
                     ),
                     "layout": "full",
                 },
@@ -584,11 +606,8 @@ def build_artifact(
                     "type": "markdown",
                     "sourceId": "weekly-growth-query",
                     "body": (
-                        "## Volume is rising while funnel quality is slipping\n\n"
-                        "Signups increased every week, but activation peaked at **62.7%** on April 27 and "
-                        "fell to **57.5%** by May 25. Support intensity moved the other way, rising from "
-                        "**7.41** to **9.19 tickets per 100 signups**. The growth is real, but the business "
-                        "is acquiring progressively more users who need help or do not reach activation."
+                        f"## Volume and activation\n\n{story['volume']} {story['activation']} "
+                        f"{story['support']} Inspect the weekly line for changes between the endpoints."
                     ),
                     "layout": "full",
                 },
@@ -598,12 +617,8 @@ def build_artifact(
                     "type": "markdown",
                     "sourceId": "channel-growth-query",
                     "body": (
-                        "## Paid Search is the drag; Partners and Referral lead quality\n\n"
-                        "Partners produced the fastest revenue growth (**77.1%**) while improving activation "
-                        "by **5.3 points**. Referral revenue rose **56.2%** with a **5.1-point** activation gain. "
-                        "Paid Search moved in the opposite direction: signups rose **47.2%**, but revenue fell "
-                        "**18.3%**. That divergence makes Paid Search the highest-priority diagnostic, not the "
-                        "highest-priority scaling channel."
+                        "## Channel observations\n\n"
+                        "Ordered by first-to-last change in activation rate:\n\n" + story["channels"]
                     ),
                     "layout": "full",
                 },
@@ -623,15 +638,8 @@ def build_artifact(
                     "id": "recommended-actions",
                     "type": "markdown",
                     "body": (
-                        "## Recommended Next Steps\n\n"
-                        "1. **Diagnose Paid Search before adding budget.** Split performance by campaign, keyword, "
-                        "landing page, device, and geography; inspect whether the May decline is concentrated.\n"
-                        "2. **Run controlled scaling tests for Partners and Referral.** Increase exposure in small "
-                        "steps and monitor activation, paid conversion, revenue per signup, and support intensity.\n"
-                        "3. **Protect Organic quality.** Organic remains the largest healthy source; monitor it as "
-                        "the baseline while other channels change.\n"
-                        "4. **Add guardrails.** Pair signup targets with activation rate and tickets per 100 signups "
-                        "so volume cannot mask deteriorating acquisition quality."
+                        "## Recommended next steps\n\n" + story["followup"] +
+                        " Compare signup-to-paid rate, cost and retention before proposing a scaling test."
                     ),
                     "layout": "full",
                 },
@@ -640,10 +648,10 @@ def build_artifact(
                     "type": "markdown",
                     "body": (
                         "## Further Questions\n\n"
-                        "- Did Paid Search mix shift toward a new campaign, keyword group, device, or geography?\n"
+                        "- Did the campaign, device or geographic mix change within a channel?\n"
                         "- Are support tickets concentrated in onboarding, billing, or product defects?\n"
-                        "- Do Partners and Referral retain their advantage after 30- or 60-day retention is added?\n"
-                        "- What is customer acquisition cost by channel, and does it change the scaling recommendation?"
+                        "- How would 30- or 60-day retention change the comparison?\n"
+                        "- What is customer acquisition cost by channel, and does it support a scaling test?"
                     ),
                     "layout": "full",
                 },
@@ -666,7 +674,7 @@ def build_artifact(
                         "- The dataset is synthetic and demonstrates workflow mechanics rather than a real company result.\n"
                         "- There are only eight complete weeks, so findings are descriptive and not causal.\n"
                         "- Acquisition cost, retention, campaign mix, and ticket categories are absent; each could change "
-                        "the recommended allocation.\n"
+                        "a future allocation decision.\n"
                         "- Rates use signups as the denominator, and no rows are excluded."
                     ),
                     "layout": "full",
@@ -693,15 +701,18 @@ def main() -> None:
     weekly = query_rows(connection, WEEKLY_SQL)
     channels = query_rows(connection, CHANNEL_SQL)
     preview = query_rows(connection, PREVIEW_SQL)
-    assert source_row_count == 32
-    assert len(weekly) == 8
-    assert len(channels) == 4
-    assert sum(row["signups"] for row in weekly) == 10189
-    assert weekly[0]["week_start"] == "2026-04-06"
-    assert weekly[-1]["week_start"] == "2026-05-25"
-    assert round(weekly[-1]["activation_rate"], 4) == 0.5752
-    paid_search = next(row for row in channels if row["acquisition_channel"] == "Paid Search")
-    assert paid_search["revenue_growth"] == -0.1833
+    # Validate the documented exercise shape, not the original answers.
+    unique_keys = connection.execute(
+        "SELECT COUNT(*) FROM (SELECT DISTINCT week_start, acquisition_channel FROM product_growth)"
+    ).fetchone()[0]
+    if ((source_row_count, len(weekly), len(channels)) != (32, 8, 4)
+            or unique_keys != source_row_count):
+        raise ValueError("Expected one row per channel per week (4 channels × 8 weeks).")
+    if connection.execute("SELECT COUNT(*) FROM product_growth WHERE signups <= 0").fetchone()[0]:
+        raise ValueError("Each channel/week needs positive signups to calculate an activation rate.")
+    source_signups = connection.execute("SELECT SUM(signups) FROM product_growth").fetchone()[0]
+    if sum(row["signups"] for row in weekly) != source_signups:
+        raise ValueError("Weekly signups did not reconcile to the input rows.")
     generated_at = datetime.now(timezone.utc).isoformat()
 
     results = {
@@ -715,12 +726,13 @@ def main() -> None:
             "week_count": "passed",
             "channel_count": "passed",
             "weekly_signup_reconciliation": "passed",
-            "headline_spot_checks": "passed",
+            "unique_channel_week": "passed",
+            "positive_signup_denominators": "passed",
         },
     }
     RESULTS_PATH.write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
 
-    notebook = build_notebook(weekly[0], weekly[-1], paid_search)
+    notebook = build_notebook(weekly, channels)
     execute_notebook(notebook)
     assert notebook["nbformat"] == 4
     assert all(

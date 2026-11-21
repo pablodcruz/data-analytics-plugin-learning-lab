@@ -30,7 +30,7 @@ notebook cells in order; and regenerates the report payload.
 Paste one of these into a new Codex task and attach or reference
 `sample-product-growth.csv`:
 
-1. `@Data Analytics diagnose why activation fell while signups grew.`
+1. `@Data Analytics compare first- and last-week activation with signup growth; explain any divergence.`
 2. `@Data Analytics compare acquisition channels and recommend where to invest.`
 3. `@Data Analytics validate this dataset and identify analytical risks.`
 4. `@Data Analytics build a KPI framework for acquisition quality.`
@@ -43,7 +43,7 @@ Paste one of these into a new Codex task and attach or reference
 2. Run `python .\build_lab.py`.
 3. Ask Data Analytics to explain what changed and whether the recommendation still holds.
 4. Ask for a different view: KPI report, dashboard, validation report, notebook, or chart.
-5. Replace the synthetic CSV with your own file once the workflow feels familiar.
+5. Replace the synthetic CSV with your own file once the workflow feels familiar. The bundled builder expects four channels over eight weeks, one row per channel per week and positive signups. Run `python -m unittest -v test_narrative` to check the original, reversed and flat scenarios.
 
 ## Important limitation
 
