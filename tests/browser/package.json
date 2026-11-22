@@ -1,0 +1,6 @@
+{
+  "name": "learning-lab-browser-proof",
+  "private": true,
+  "scripts": {"test": "node compare.mjs"},
+  "devDependencies": {"playwright": "1.62.0"}
+}

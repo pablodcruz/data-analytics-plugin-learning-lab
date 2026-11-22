@@ -65,3 +65,20 @@ This optional example only accepts the original bundled synthetic CSV.
 It does not change the source CSV, notebook, or canonical artifacts. The
 generated view and reports are ignored by Git. Run
 `python -m unittest -v` to verify both the existing outputs and the comparison.
+
+### Browser check
+
+The pull-request check runs Chromium on the generated local comparison at
+320, 390, and 1280 pixels. It verifies the chart and endpoint percentages,
+horizontal fit, and the keyboard path to the bundled report evidence. The
+page is opened offline and the test rejects non-file requests.
+
+To run it locally with Node.js 20 or later and Chromium's system dependencies:
+
+```sh
+python3 compare_fixture.py
+cd tests/browser
+npm ci --ignore-scripts --no-audit --no-fund
+./node_modules/.bin/playwright install --only-shell chromium
+npm test
+```
