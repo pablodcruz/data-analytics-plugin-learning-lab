@@ -64,6 +64,7 @@
   .rate-card dl {margin:4px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
   .rate-card dt {font-size:.72rem;color:var(--muted)}
   .rate-card dd {margin:0;font-size:.83rem;font-weight:750;font-variant-numeric:tabular-nums}
+  .rate-count {display:block;color:var(--muted);font-weight:500;font-size:.72rem;}
   @media(max-width:365px) {.rate-cards {grid-template-columns:1fr}}
   .checks {margin-top:16px;display:grid;grid-template-columns:minmax(175px,1fr) 1.9fr;gap:20px;align-items:center;background:var(--night);color:var(--tile);padding:15px clamp(13px,3vw,30px)}
   .checks h2 {font-size:clamp(23px,3vw,35px)}
@@ -132,6 +133,7 @@
     </div>
     <section class="rate-breakdown" aria-labelledby="rate-heading">
       <h3 id="rate-heading">Paid Search activation rates behind each bar</h3>
+      <p class="unit">Each count shows users who activated out of all signups that week.</p>
       <div class="rate-cards">$rates</div>
     </section>
   </figure>

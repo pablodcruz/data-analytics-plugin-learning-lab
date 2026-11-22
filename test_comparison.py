@@ -29,9 +29,14 @@ class ComparisonTests(unittest.TestCase):
                 self.assertIn(reading.encode(), html)
             # Percentages are the rates behind each bar, not additional changes.
             self.assertIn(b"Paid Search activation rates behind each bar", html)
-            self.assertEqual(html.count(b"<dd>56.94%</dd>"), 2)
-            self.assertIn(b"<dd>39.62%</dd>", html)
-            self.assertIn(b"<dd>94.34%</dd>", html)
+            for date, rate, fraction, times in (
+                ("Apr 6", "56.94%", "205 of 360 signups", 2),
+                ("May 25", "39.62%", "210 of 530 signups", 1),
+                ("May 25", "94.34%", "500 of 530 signups", 1),
+            ):
+                endpoint = (f'<dt>{date}</dt><dd><strong>{rate}</strong>'
+                            f'<span class="rate-count">{fraction}</span></dd>')
+                self.assertEqual(html.count(endpoint.encode()), times)
             self.assertEqual(html.count("−18.3%".encode()), 2)
             self.assertEqual(generate(ROOT, dest).read_bytes(), html)
         self.assertEqual([(ROOT / name).read_bytes() for name in paths], before)
