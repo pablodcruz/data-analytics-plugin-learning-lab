@@ -56,6 +56,15 @@
   .up .reading {color:var(--high)}
   .reading strong {font-size:clamp(16px,2.5vw,25px);font-variant-numeric:tabular-nums}
   .reading abbr {text-decoration:none;font-size:.65rem}
+  .rate-breakdown {border-top:1px solid var(--line);margin-top:14px;padding-top:10px}
+  .rate-breakdown > h3 {font-size:.78rem;color:var(--muted)}
+  .rate-cards {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:6px}
+  .rate-card {background:var(--paper);padding:7px 9px}
+  .rate-card h3 {font-size:.79rem}
+  .rate-card dl {margin:4px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+  .rate-card dt {font-size:.72rem;color:var(--muted)}
+  .rate-card dd {margin:0;font-size:.83rem;font-weight:750;font-variant-numeric:tabular-nums}
+  @media(max-width:365px) {.rate-cards {grid-template-columns:1fr}}
   .checks {margin-top:16px;display:grid;grid-template-columns:minmax(175px,1fr) 1.9fr;gap:20px;align-items:center;background:var(--night);color:var(--tile);padding:15px clamp(13px,3vw,30px)}
   .checks h2 {font-size:clamp(23px,3vw,35px)}
   .checks p {color:var(--mint);margin-top:4px;font-size:.82rem;max-width:31ch}
@@ -121,6 +130,10 @@
       <div class="axis-row" aria-hidden="true"><span></span><div class="axis"><span>−40</span><span>−20</span><span>0</span><span>+20</span><span>+40</span></div><span></span></div>
       $bars
     </div>
+    <section class="rate-breakdown" aria-labelledby="rate-heading">
+      <h3 id="rate-heading">Paid Search activation rates behind each bar</h3>
+      <div class="rate-cards">$rates</div>
+    </section>
   </figure>
   <section class="checks" aria-labelledby="checks-heading">
     <div><h2 id="checks-heading">Revenue did not flip.</h2><p>It is measured in percent, not percentage points. A better activation result alone does not justify more ad spend.</p></div>

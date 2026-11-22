@@ -29,6 +29,8 @@ class Reading:
     name: str
     activated: int
     signups: int
+    first_activation_rate: float
+    last_activation_rate: float
     activation_pp: float
     overall_activation_pp: float
     revenue_fraction: float
@@ -62,7 +64,9 @@ def report_readings(report, row, key, letter, name):
     activated, signups = (int(row[field]) for field in ("activated_users", "signups"))
     require(0 <= activated <= signups and signups == paid["last_signups"],
             "The experiment row does not reconcile to the generated report.")
-    return Reading(key, letter, name, activated, signups, number(paid["activation_rate_change_pp"]),
+    return Reading(key, letter, name, activated, signups,
+                   number(paid["first_activation_rate"]), number(paid["last_activation_rate"]),
+                   number(paid["activation_rate_change_pp"]),
                    number(headline["activation_rate_change_pp"]), number(paid["revenue_growth"]),
                    finding, followup)
 
@@ -111,6 +115,15 @@ def render(scenarios, template):
       <div class="reading"><strong>{signed(s.activation_pp)}</strong> <abbr title="percentage points">pp</abbr></div>
     </div>"""
 
+    def rates(s):
+        return f"""<div class="rate-card">
+      <h3>{s.letter} · {s.name}</h3>
+      <dl>
+        <div><dt>Apr 6</dt><dd>{s.first_activation_rate:.2%}</dd></div>
+        <div><dt>May 25</dt><dd>{s.last_activation_rate:.2%}</dd></div>
+      </dl>
+    </div>"""
+
     def condition(s):
         return f'<article class="input"><p class="label">{s.letter} / {s.name}</p><strong>{s.activated}</strong><span> of {s.signups} signups</span></article>'
 
@@ -127,7 +140,8 @@ def render(scenarios, template):
 
     return Template(template).substitute(
         inputs="\n".join(map(condition, scenarios)), bars="\n".join(map(bar, scenarios)),
-        checks="\n".join(map(check, scenarios)), evidence="\n".join(map(evidence, scenarios)),
+        rates="\n".join(map(rates, scenarios)), checks="\n".join(map(check, scenarios)),
+        evidence="\n".join(map(evidence, scenarios)),
     )
 
 
