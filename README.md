@@ -58,7 +58,7 @@ activations go from 210 to 500 in the final week, with signups unchanged.
 Two disposable executions of the same builder supply the figures and links
 to the original report JSON. Rate changes use percentage points; revenue
 change uses percent. Each bar shows the change from the April 6 rate to the
-May 25 rate; both endpoint rates are shown below it, in percent. A reversal
+May 25 rate; both endpoint rates and their source counts are shown below it. A reversal
 in activation is not a spending recommendation.
 
 This optional example only accepts the original bundled synthetic CSV.

@@ -7,8 +7,8 @@ const fixture = new URL('../../.comparison/index.html', import.meta.url);
 const heading = 'Paid Search activation flips direction';
 const evidence = 'Read the generated report evidence';
 const readings = [
-  { name: 'A · Original', delta: '−17.3', last: '39.62%', raw: -17.32 },
-  { name: 'B · Edited', delta: '+37.4', last: '94.34%', raw: 37.4 },
+  { name: 'A · Original', delta: '−17.3', last: '39.62%', lastCount: '210 of 530 signups', raw: -17.32 },
+  { name: 'B · Edited', delta: '+37.4', last: '94.34%', lastCount: '500 of 530 signups', raw: 37.4 },
 ];
 
 export function verifyGeometry({ width, scrollWidth, rows }) {
@@ -45,7 +45,9 @@ async function checkFixture(browser, width) {
         has: page.getByRole('heading', { name: reading.name, exact: true }),
       });
       assert.deepEqual(await card.locator('dt').allTextContents(), ['Apr 6', 'May 25']);
-      assert.deepEqual(await card.locator('dd').allTextContents(), ['56.94%', reading.last]);
+      assert.deepEqual(await card.locator('dd strong').allTextContents(), ['56.94%', reading.last]);
+      assert.deepEqual(await card.locator('dd .rate-count').allTextContents(),
+        ['205 of 360 signups', reading.lastCount]);
       assert.equal(await figure.locator('.reading strong').nth(index).textContent(), reading.delta);
     }
     const snapshot = () => page.evaluate(() => {
